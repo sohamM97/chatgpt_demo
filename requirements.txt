@@ -1,3 +1,7 @@
 openai
 langchain
 wikipedia
+unstructured
+tabulate
+pdf2image
+pytesseract
