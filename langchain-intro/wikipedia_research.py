@@ -1,12 +1,10 @@
-import os
-
 import dotenv
 from langchain.agents import AgentType, initialize_agent, load_tools
 from langchain.llms import OpenAI
 
 dotenv.load_dotenv("../.env")
 
-llm = OpenAI(openai_api_key=os.getenv("OPENAI_API_KEY"), temperature=0)
+llm = OpenAI(temperature=0)
 
 tools = load_tools(["wikipedia", "llm-math"], llm=llm)
 

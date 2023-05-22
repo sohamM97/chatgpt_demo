@@ -1,12 +1,10 @@
-import os
-
 import dotenv
 from langchain.llms import OpenAI
 from langchain.prompts import PromptTemplate
 
 dotenv.load_dotenv("../.env")
 
-llm = OpenAI(openai_api_key=os.getenv("OPENAI_API_KEY"), temperature=0)
+llm = OpenAI(temperature=0)
 
 prompt = PromptTemplate(
     input_variables=["content", "customer_name", "agent_name"],
