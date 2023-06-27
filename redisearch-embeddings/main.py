@@ -85,26 +85,36 @@ for document in documents:
             ]
         )
 
+# source: https://www.sbert.net/docs/pretrained_models.html
 client = SentenceTransformer("all-mpnet-base-v2")
 
-texts = list(map(lambda x: x.replace("\n", " "), texts))
+texts = [text.replace("\n", " ") for text in texts]
 doc_embeddings = client.encode(texts).tolist()
 
 dim = len(doc_embeddings[0])
 
 redis_client = redis.from_url(os.getenv("REDIS_URL"))
 
+# Sources:
+# https://youtu.be/infTV4ifNZY
+# https://redis.io/docs/stack/search/reference/vectors/
+
 prefix = f"doc:{INDEX_NAME}"
 if not _check_index_exists(redis_client, index_name=INDEX_NAME):
-    # Define schema
+    # Define schema - fields to be indexed are content, metadata and content_vector
     schema = (
         TextField(name="content"),
         TextField(name="metadata"),
         VectorField(
-            "content_vector",
-            "FLAT",
-            {
+            name="content_vector",
+            # FLAT is a brute force algorithm to perform KNN similarity search
+            # i.e. compute distances of query point to all other data
+            # points in the dataset
+            algorithm="FLAT",
+            attributes={
                 "TYPE": "FLOAT32",
+                # DIM is the dimension of the vector,
+                # 768 in case of all-mpnet-base-v2 sentence transformer
                 "DIM": dim,
                 "DISTANCE_METRIC": "COSINE",
             },
@@ -112,7 +122,10 @@ if not _check_index_exists(redis_client, index_name=INDEX_NAME):
     )
 
     # Create Redis Index
+    # FT means full-text and is a prefix used for RediSearch commands
     redis_client.ft(INDEX_NAME).create_index(
+        # creates an index on keys prefixed docs:balic:,
+        # on fields content, metadata, and content_vector
         fields=schema,
         definition=IndexDefinition(prefix=[prefix], index_type=IndexType.HASH),
     )
@@ -123,7 +136,6 @@ ids = []
 batch_size = 1000
 pipeline = redis_client.pipeline(transaction=False)
 for i, text in enumerate(texts):
-    # Use provided values by default or fallback
     key = _redis_key(prefix)
     metadata = sources[i]
     embedding = doc_embeddings[i]
