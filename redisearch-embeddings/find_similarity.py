@@ -3,9 +3,13 @@ import os
 
 import numpy as np
 import redis
+from dotenv import find_dotenv, load_dotenv
 from langchain.docstore.document import Document
 from redis.commands.search.query import Query
 from sentence_transformers import SentenceTransformer
+
+load_dotenv(find_dotenv())
+
 
 INDEX_NAME = "balic"
 
