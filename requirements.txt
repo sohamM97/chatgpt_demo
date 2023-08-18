@@ -6,3 +6,8 @@ tabulate
 pdf2image
 pytesseract
 PyPDF2
+jupyter
+pandas
+openpyxl
+jsonlines
+python-dotenv
